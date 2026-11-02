@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0B0908" />
+<title>MORI · 登录</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#0B0908;
+    --ink-soft:#14100C;
+    --cream:#F4EDE3;
+    --cream-dim:rgba(244,237,227,.64);
+    --cream-faint:rgba(244,237,227,.36);
+    --line:rgba(244,237,227,.16);
+    --accent:#E3A263;
+    --accent-soft:#F0BC84;
+    --danger:#E1916F;
+    --sans:"Inter","PingFang SC","Helvetica Neue",system-ui,sans-serif;
+    --serif:"Noto Serif SC","Songti SC","STSong",serif;
+    --ease:cubic-bezier(.16,1,.3,1);
+  }
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--ink);color:var(--cream);
+    font-family:var(--sans);-webkit-font-smoothing:antialiased;
+    overflow:hidden;
+  }
+  button{font-family:inherit}
+  a{color:inherit}
+
+  /* ---------- desktop stage ---------- */
+  .stage{
+    position:relative;min-height:100vh;min-height:100svh;
+    display:grid;place-items:center;padding:32px 24px;
+    overflow:hidden;
+  }
+  .stage::before{
+    content:"";position:absolute;inset:-20%;
+    background:
+      radial-gradient(58% 54% at 50% 40%,rgba(227,162,99,.17),transparent 70%),
+      radial-gradient(40% 42% at 80% 80%,rgba(126,94,62,.14),transparent 72%),
+      radial-gradient(60% 60% at 12% 12%,rgba(70,86,96,.10),transparent 70%);
+    filter:blur(30px);
+  }
+  .stage::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='n'/%3E%3C/svg%3E");
+    opacity:.16;mix-blend-mode:overlay;
+  }
+
+  /* ---------- device ---------- */
+  .device-slot{
+    position:relative;flex:none;
+    width:calc(390px * var(--fit,1));
+    height:calc(844px * var(--fit,1));
+    margin:auto;
+  }
+  .device{
+    position:absolute;top:0;left:0;z-index:2;
+    width:390px;height:844px;
+    transform:scale(var(--fit,1));
+    transform-origin:top left;
+    padding:10px;border-radius:52px;
+    background:linear-gradient(160deg,#241d16,#0a0807 45%,#171310);
+    box-shadow:
+      0 0 0 1px rgba(244,237,227,.10),
+      0 2px 0 1px rgba(255,255,255,.05) inset,
+      0 70px 120px -50px rgba(0,0,0,.95),
+      0 30px 60px -30px rgba(0,0,0,.8);
+  }
+  .device::before{
+    content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+    background:linear-gradient(140deg,rgba(255,255,255,.16),transparent 30%,transparent 70%,rgba(255,255,255,.06));
+    -webkit-mask:linear-gradient(#000,#000) content-box,linear-gradient(#000,#000);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    padding:1px;
+  }
+  .screen{
+    position:relative;height:100%;border-radius:42px;overflow:hidden;
+    background:var(--ink);isolation:isolate;
+    display:flex;flex-direction:column;
+  }
+
+  /* ---------- hero image ---------- */
+  .bg{position:absolute;inset:-14px;z-index:0}
+  .bg-img{
+    position:absolute;inset:0;
+    transform:translate3d(var(--tx,0px),var(--ty,0px),0);
+    transition:transform .5s ease-out;
+    will-change:transform;
+  }
+  .bg-img img{
+    width:100%;height:100%;object-fit:cover;display:block;
+    opacity:0;transform:scale(1.09);
+    transition:opacity 1.4s ease,transform 2s var(--ease);
+  }
+  .bg-img img.is-loaded{opacity:1;transform:scale(1.02)}
+  .bg-fallback{
+    position:absolute;inset:0;
+    background:
+      radial-gradient(120% 80% at 50% 18%,#cfa377 0%,#8a6448 30%,#3b2a1e 62%,#14100c 100%);
+  }
+  .scrim{
+    position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(180deg,
+      rgba(9,7,6,.50) 0%,
+      rgba(9,7,6,.08) 24%,
+      rgba(9,7,6,.24) 46%,
+      rgba(9,7,6,.50) 58%,
+      rgba(9,7,6,.66) 66%,
+      rgba(9,7,6,.93) 84%,
+      #0B0908 100%);
+  }
+  /* drifting warm light */
+  .screen::before{
+    content:"";position:absolute;z-index:1;pointer-events:none;
+    top:6%;right:-24%;width:76%;aspect-ratio:1;border-radius:50%;
+    background:radial-gradient(circle,rgba(240,188,132,.22),rgba(240,188,132,0) 66%);
+    filter:blur(6px);
+    animation:drift 16s ease-in-out infinite alternate;
+  }
+  @keyframes drift{
+    from{transform:translate3d(0,0,0) scale(1)}
+    to{transform:translate3d(-8%,5%,0) scale(1.12)}
+  }
+  /* film grain over the screen */
+  .screen::after{
+    content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='n'/%3E%3C/svg%3E");
+    opacity:.075;mix-blend-mode:overlay;
+  }
+
+  /* ---------- status bar / island ---------- */
+  .statusbar{
+    position:relative;z-index:4;height:52px;padding:15px 26px 0;
+    display:flex;align-items:flex-start;justify-content:space-between;
+    font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--cream);
+  }
+  .statusbar .icons{display:flex;align-items:center;gap:6px;color:var(--cream);opacity:.92}
+  .statusbar svg{display:block}
+  .island{
+    position:absolute;z-index:4;top:10px;left:50%;transform:translateX(-50%);
+    width:104px;height:29px;border-radius:999px;background:#000;
+    display:flex;align-items:center;justify-content:flex-end;padding-right:9px;
+  }
+  .island::before{
+    content:"";width:37%;height:100%;
+    background:radial-gradient(60% 70% at 50% 50%,#0e0d0c,#000 72%);
+    border-radius:999px;
+  }
+  .island::after{
+    content:"";width:6px;height:6px;border-radius:50%;
+    background:radial-gradient(circle at 35% 35%,#3b3a38,#0a0a0a 70%);
+    box-shadow:0 0 0 1px rgba(255,255,255,.06);
+    margin-left:8px;
+  }
+
+  /* ---------- content ---------- */
+  .content{
+    position:relative;z-index:2;flex:1;min-height:0;
+    display:flex;flex-direction:column;
+    padding:6px 28px 22px;
+  }
+
+  .brand{
+    display:flex;align-items:center;justify-content:space-between;
+    min-height:22px;
+  }
+  .wordmark{
+    display:flex;align-items:center;gap:9px;
+    font-size:14px;font-weight:500;letter-spacing:.42em;
+  }
+  .wordmark i{
+    width:5px;height:5px;border-radius:50%;background:var(--accent);
+    display:block;box-shadow:0 0 12px rgba(227,162,99,.6);
+  }
+  .help{
+    font-size:11.5px;letter-spacing:.06em;color:var(--cream-faint);
+    text-decoration:none;transition:color .25s;
+  }
+  .help:hover{color:var(--cream-dim)}
+
+  .hero{margin-top:clamp(34px,8.4vh,78px)}
+  .kicker{
+    display:flex;align-items:center;gap:10px;margin:0;
+    font-size:11px;letter-spacing:.2em;color:var(--cream-dim);
+  }
+  .kicker::before{content:"";width:24px;height:1px;background:var(--accent);opacity:.8}
+  .hero h1{
+    margin:16px 0 0;
+    font-family:var(--serif);font-weight:500;
+    font-size:clamp(34px,10.4vw,46px);line-height:1.34;letter-spacing:.01em;
+    color:var(--cream);
+    text-wrap:balance;
+  }
+  .hero .sub{
+    margin:16px 0 0;font-size:13px;line-height:1.7;letter-spacing:.05em;
+    color:var(--cream-dim);
+  }
+
+  /* ---------- form ---------- */
+  .form{margin-top:auto;padding-top:22px;position:relative}
+  .field{
+    position:relative;border-bottom:1px solid var(--line);
+    transition:border-color .3s ease;
+  }
+  .field + .field{margin-top:21px}
+  .field label{
+    display:block;margin-bottom:8px;
+    font-size:10.5px;letter-spacing:.16em;color:rgba(244,237,227,.55);
+    transition:color .3s ease;
+  }
+  .field input{
+    width:100%;padding:0 36px 9px 0;border:0;outline:0;background:transparent;
+    font-family:var(--sans);font-size:16px;font-weight:300;letter-spacing:.01em;
+    color:var(--cream);caret-color:var(--accent);
+    transition:color .2s;
+  }
+  .field input::placeholder{color:rgba(244,237,227,.36);font-weight:300}
+  .field:focus-within{border-color:var(--accent)}
+  .field:focus-within label{color:var(--accent)}
+  .field.error{border-color:var(--danger);animation:shake .4s ease}
+  .field.error label{color:var(--danger)}
+  @keyframes shake{
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-5px)}
+    45%{transform:translateX(4px)}
+    70%{transform:translateX(-2px)}
+  }
+  .eye{
+    position:absolute;right:-6px;bottom:4px;
+    width:38px;height:34px;display:grid;place-items:center;
+    background:none;border:0;padding:0;cursor:pointer;
+    color:var(--cream-faint);transition:color .25s;
+  }
+  .eye:hover{color:var(--cream-dim)}
+  .eye .off{display:none}
+  .eye.is-on .off{display:block}
+  .eye.is-on .on{display:none}
+
+  .options{
+    display:flex;align-items:center;justify-content:space-between;
+    margin:19px 0 24px;font-size:12px;color:var(--cream-dim);
+  }
+  .check{
+    display:inline-flex;align-items:center;gap:9px;cursor:pointer;
+    user-select:none;letter-spacing:.04em;
+  }
+  .check input{position:absolute;opacity:0;width:0;height:0}
+  .check .box{
+    width:17px;height:17px;border-radius:5px;
+    border:1px solid var(--line);display:grid;place-items:center;
+    transition:background .22s,border-color .22s;
+  }
+  .check .box svg{width:9px;opacity:0;transform:scale(.6);transition:opacity .2s,transform .2s var(--ease)}
+  .check input:checked + .box{background:var(--accent);border-color:var(--accent)}
+  .check input:checked + .box svg{opacity:1;transform:scale(1)}
+  .forgot{
+    color:var(--cream-dim);text-decoration:none;letter-spacing:.03em;
+    border-bottom:1px solid rgba(244,237,227,.22);padding-bottom:2px;
+    transition:color .25s,border-color .25s;
+  }
+  .forgot:hover{color:var(--cream);border-color:rgba(227,162,99,.6)}
+
+  .btn-primary{
+    position:relative;width:100%;height:54px;
+    border:0;border-radius:999px;
+    background:var(--accent);color:#1B1207;
+    font-size:14px;font-weight:600;letter-spacing:.14em;
+    cursor:pointer;overflow:hidden;
+    display:grid;place-items:center;
+    transition:transform .25s var(--ease),background .25s,box-shadow .35s,opacity .25s;
+    box-shadow:0 16px 34px -18px rgba(227,162,99,.75);
+  }
+  .btn-primary::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.32) 48%,transparent 62%);
+    transform:translateX(-120%);
+    transition:transform .9s var(--ease);
+  }
+  .btn-primary:hover{background:var(--accent-soft);box-shadow:0 20px 44px -18px rgba(240,188,132,.8)}
+  .btn-primary:hover::after{transform:translateX(120%)}
+  .btn-primary:active{transform:scale(.985)}
+  .btn-primary .spinner{
+    display:none;position:absolute;width:17px;height:17px;border-radius:50%;
+    border:2px solid rgba(27,18,7,.22);border-top-color:#1B1207;
+    animation:spin .7s linear infinite;
+  }
+  .btn-primary.loading .spinner{display:block}
+  .btn-primary.loading .btn-label{opacity:0}
+  .btn-label{transition:opacity .2s}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .divider{
+    display:flex;align-items:center;gap:14px;
+    margin:23px 0 17px;
+    font-size:10.5px;letter-spacing:.22em;color:rgba(244,237,227,.5);
+  }
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  .socials{display:flex;gap:11px}
+  .social{
+    flex:1;height:48px;border-radius:999px;
+    border:1px solid var(--line);background:rgba(244,237,227,.045);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    color:var(--cream-dim);
+    display:flex;align-items:center;justify-content:center;gap:9px;
+    font-size:12.5px;letter-spacing:.04em;cursor:pointer;
+    transition:border-color .25s,color .25s,background .25s,transform .25s;
+  }
+  .social:hover{border-color:rgba(244,237,227,.32);color:var(--cream);background:rgba(244,237,227,.08)}
+  .social:active{transform:scale(.985)}
+  .social svg{width:17px;height:17px;flex:none}
+
+  .signup{
+    margin-top:24px;text-align:center;
+    font-size:12.5px;letter-spacing:.03em;color:var(--cream-dim);
+  }
+  .signup a{
+    margin-left:5px;color:var(--cream);text-decoration:none;
+    border-bottom:1px solid rgba(227,162,99,.5);padding-bottom:2px;
+    transition:color .25s,border-color .25s;
+  }
+  .signup a:hover{color:var(--accent-soft);border-color:var(--accent)}
+  .legal{
+    margin:13px 0 0;text-align:center;font-size:10.5px;line-height:1.7;
+    letter-spacing:.02em;color:rgba(244,237,227,.44);
+  }
+  .legal a{color:var(--cream-dim);text-decoration:none;border-bottom:1px solid rgba(244,237,227,.2)}
+  .legal a:hover{color:var(--cream)}
+
+  .home-indicator{
+    position:absolute;z-index:4;bottom:8px;left:50%;transform:translateX(-50%);
+    width:134px;height:5px;border-radius:999px;background:rgba(244,237,227,.32);
+  }
+
+  /* ---------- toast ---------- */
+  .toast{
+    position:absolute;z-index:6;top:64px;left:50%;
+    max-width:82%;
+    padding:9px 17px;border-radius:999px;
+    background:rgba(24,19,14,.72);border:1px solid rgba(244,237,227,.18);
+    -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+    color:var(--cream);font-size:11.5px;letter-spacing:.04em;text-align:center;
+    transform:translate(-50%,-10px);opacity:0;pointer-events:none;
+    transition:opacity .35s ease,transform .45s var(--ease);
+    box-shadow:0 12px 30px -16px rgba(0,0,0,.8);
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  /* ---------- success veil ---------- */
+  .veil{
+    position:absolute;inset:0;z-index:5;
+    display:grid;place-items:center;
+    background:
+      radial-gradient(60% 50% at 50% 44%,rgba(58,41,26,.86),rgba(11,9,8,.94) 74%);
+    -webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);
+    opacity:0;pointer-events:none;
+    transition:opacity .6s ease;
+  }
+  .veil.open{opacity:1;pointer-events:auto}
+  .veil-inner{text-align:center;padding:0 30px}
+  .veil .check{
+    width:84px;height:84px;margin:0 auto;border-radius:50%;
+    border:1px solid rgba(227,162,99,.55);
+    display:grid;place-items:center;
+    background:radial-gradient(circle,rgba(227,162,99,.14),transparent 70%);
+    box-shadow:0 0 40px -8px rgba(227,162,99,.35),inset 0 0 24px rgba(227,162,99,.08);
+    opacity:0;transform:scale(.62);
+  }
+  .veil.open .check{animation:checkPop .75s var(--ease) .15s forwards}
+  @keyframes checkPop{
+    0%{opacity:0;transform:scale(.62)}
+    62%{opacity:1;transform:scale(1.05)}
+    100%{opacity:1;transform:scale(1)}
+  }
+  .veil .check svg{width:34px;stroke:var(--accent);stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .veil .check path{stroke-dasharray:32;stroke-dashoffset:32}
+  .veil.open .check path{animation:draw .55s ease-out .6s forwards}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  .veil h2{
+    margin:26px 0 0;font-family:var(--serif);font-weight:500;
+    font-size:26px;letter-spacing:.04em;color:var(--cream);
+    opacity:0;transform:translateY(12px);
+  }
+  .veil.open h2{animation:rise .8s var(--ease) .5s forwards}
+  .veil p{
+    margin:12px 0 0;font-size:12.5px;letter-spacing:.08em;color:var(--cream-dim);
+    opacity:0;transform:translateY(12px);
+  }
+  .veil.open p{animation:rise .8s var(--ease) .62s forwards}
+
+  /* ---------- entrance ---------- */
+  .reveal{opacity:0;animation:rise .9s var(--ease) forwards}
+  @keyframes rise{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+  .brand.reveal{animation-delay:.12s}
+  .kicker.reveal{animation-delay:.30s}
+  .hero h1.reveal{animation-delay:.40s;--enter:26px}
+  .hero .sub.reveal{animation-delay:.52s}
+  .field.reveal:nth-of-type(1){animation-delay:.62s}
+  .field.reveal:nth-of-type(2){animation-delay:.70s}
+  .options.reveal{animation-delay:.78s}
+  .btn-primary.reveal{animation-delay:.86s}
+  .divider.reveal{animation-delay:.94s}
+  .socials.reveal{animation-delay:1.02s}
+  .signup.reveal{animation-delay:1.10s}
+  .legal.reveal{animation-delay:1.16s}
+
+  /* ---------- focus ---------- */
+  :focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
+  .field input:focus-visible{outline:none}
+
+  /* ---------- mobile: full bleed ---------- */
+  @media (max-width:640px){
+    body{background:var(--ink)}
+    .stage{padding:0;min-height:100svh}
+    .stage::before{opacity:.5}
+    .device-slot{width:100%;height:100vh;height:100svh}
+    .device{
+      position:absolute;inset:0;
+      width:100%;height:100%;
+      transform:none;
+      padding:0;border-radius:0;background:var(--ink);box-shadow:none;
+    }
+    .device::before{display:none}
+    .screen{border-radius:0}
+    .statusbar,.island,.home-indicator{display:none}
+    .content{padding:calc(env(safe-area-inset-top) + 26px) 26px calc(env(safe-area-inset-bottom) + 18px)}
+    .brand{min-height:20px}
+    .hero{margin-top:clamp(22px,8vh,60px)}
+    .kicker{font-size:10.5px}
+    .hero h1{font-size:clamp(32px,9.2vw,42px);margin-top:12px}
+    .hero .sub{margin-top:11px;font-size:12.5px}
+    .form{padding-top:14px}
+    .field + .field{margin-top:15px}
+    .field label{margin-bottom:7px}
+    .field input{padding-bottom:8px}
+    .options{margin:15px 0 18px;font-size:11.5px}
+    .btn-primary{height:51px}
+    .divider{margin:18px 0 13px}
+    .social{height:45px;font-size:12px}
+    .signup{margin-top:18px;font-size:12px}
+    .legal{margin-top:9px;font-size:10px}
+    .toast{top:calc(env(safe-area-inset-top) + 16px)}
+    .btn-primary:hover{background:var(--accent)}
+    .btn-primary:hover::after{transform:translateX(-120%)}
+  }
+
+  @media (max-width:640px) and (max-height:620px){
+    .kicker,.hero .sub{display:none}
+    .hero{margin-top:18px}
+    .hero h1{font-size:30px;margin-top:0}
+    .signup{margin-top:13px}
+  }
+
+  /* ---------- reduced motion ---------- */
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{
+      animation-duration:.001ms !important;
+      animation-delay:0ms !important;
+      transition-duration:.001ms !important;
+    }
+    .reveal{opacity:1;transform:none}
+    .veil .check,.veil h2,.veil p{opacity:1;transform:none}
+    .veil .check path{stroke-dashoffset:0}
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="device-slot">
+      <div class="device">
+        <div class="screen">
+
+        <div class="bg" aria-hidden="true">
+          <div class="bg-fallback"></div>
+          <div class="bg-img" id="bgImg">
+            <img id="heroImg" src="assets/hero-dusk.jpg" alt="" />
+          </div>
+          <div class="scrim"></div>
+        </div>
+
+        <div class="statusbar" aria-hidden="true">
+          <span>9:41</span>
+          <span class="icons">
+            <svg viewBox="0 0 18 12" width="17" height="11" fill="currentColor">
+              <rect x="0" y="8" width="3" height="4" rx="1"/>
+              <rect x="5" y="5.5" width="3" height="6.5" rx="1"/>
+              <rect x="10" y="3" width="3" height="9" rx="1"/>
+              <rect x="15" y="0" width="3" height="12" rx="1"/>
+            </svg>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M2.8 9.2a14.6 14.6 0 0 1 18.4 0"/>
+              <path d="M6.2 13a9.4 9.4 0 0 1 11.6 0"/>
+              <path d="M9.6 16.7a4.6 4.6 0 0 1 4.8 0"/>
+              <circle cx="12" cy="19.8" r="1.2" fill="currentColor" stroke="none"/>
+            </svg>
+            <svg viewBox="0 0 26 12" width="24" height="12" fill="none" stroke="currentColor" stroke-width="1.1">
+              <rect x="1" y="1" width="21" height="10" rx="3"/>
+              <rect x="3.2" y="3.2" width="14" height="5.6" rx="1.8" fill="currentColor" stroke="none"/>
+              <path d="M24 4.4v3.2" stroke-linecap="round"/>
+            </svg>
+          </span>
+        </div>
+        <div class="island" aria-hidden="true"></div>
+
+        <main class="content">
+          <div class="brand reveal">
+            <span class="wordmark">MORI<i></i></span>
+            <a class="help" href="mailto:support@mori.app">需要帮助</a>
+          </div>
+
+          <section class="hero">
+            <p class="kicker reveal">生活记录 · 慢社交</p>
+            <h1 class="reveal">慢一点，<br>也很好。</h1>
+            <p class="sub reveal">记录日常微光，遇见同频的人。</p>
+          </section>
+
+          <form class="form" id="loginForm" novalidate>
+            <div class="field reveal" id="fieldAccount">
+              <label for="account">手机号 / 邮箱</label>
+              <input id="account" name="account" type="text" inputmode="email"
+                autocomplete="username" placeholder="请输入手机号或邮箱" />
+            </div>
+
+            <div class="field reveal" id="fieldPassword">
+              <label for="password">密码</label>
+              <input id="password" name="password" type="password"
+                autocomplete="current-password" placeholder="请输入密码" />
+              <button class="eye" id="eye" type="button" aria-label="显示密码">
+                <svg class="on" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M2.2 12s3.6-6.4 9.8-6.4S21.8 12 21.8 12 18.2 18.4 12 18.4 2.2 12 2.2 12Z"/>
+                  <circle cx="12" cy="12" r="2.9"/>
+                </svg>
+                <svg class="off" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M2.2 12s3.6-6.4 9.8-6.4S21.8 12 21.8 12 18.2 18.4 12 18.4 2.2 12 2.2 12Z"/>
+                  <circle cx="12" cy="12" r="2.9"/>
+                  <path d="M3.5 20.5 20.5 3.5" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+
+            <div class="options reveal">
+              <label class="check">
+                <input type="checkbox" id="remember" checked />
+                <span class="box">
+                  <svg viewBox="0 0 12 12" fill="none" stroke="#1B1207" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 6.4 4.6 9 10 3.4"/>
+                  </svg>
+                </span>
+                记住我
+              </label>
+              <a class="forgot" href="#" id="forgot">忘记密码？</a>
+            </div>
+
+            <button class="btn-primary reveal" id="submitBtn" type="submit">
+              <span class="btn-label">登 录</span>
+              <span class="spinner"></span>
+            </button>
+
+            <div class="divider reveal">或</div>
+
+            <div class="socials reveal">
+              <button class="social" type="button" data-name="微信">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9.4 3.6c-3.7 0-6.7 2.3-6.7 5.2 0 1.7.9 3.1 2.4 4.1l-.7 2.2 2.4-1.2c.6.2 1.3.3 2 .3 3.7 0 6.7-2.3 6.7-5.2 0-2.9-3-5.2-6.7-5.2Z"/>
+                  <path d="M15.4 8.5c3 0 5.4 1.9 5.4 4.2 0 1.4-.7 2.6-1.9 3.4l.5 1.8-2-.9c-.5.1-1 .2-1.6.2-3 0-5.4-1.9-5.4-4.2 0-2.3 2.4-4.2 5.4-4.2Z"/>
+                </svg>
+                微信登录
+              </button>
+              <button class="social" type="button" data-name="Apple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11.9 7.4c-2.9 0-5.4 2.1-5.4 5.3 0 3.8 2.9 7.1 5.4 7.1 2.5 0 5.4-3.3 5.4-7.1 0-3.2-2.5-5.3-5.4-5.3Z"/>
+                  <path d="M12 7.3c.2-2.1 1.5-3.6 3.3-4"/>
+                  <path d="M15.3 3.3c.2 1.5-.8 2.7-2.2 3"/>
+                </svg>
+                Apple 登录
+              </button>
+            </div>
+
+            <p class="signup reveal">还没有账号？<a href="#" id="signup">创建账号</a></p>
+            <p class="legal reveal">登录即代表你同意 <a href="#">用户协议</a> 与 <a href="#">隐私政策</a></p>
+          </form>
+        </main>
+
+        <div class="home-indicator" aria-hidden="true"></div>
+
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+        <div class="veil" id="veil" aria-hidden="true">
+          <div class="veil-inner">
+            <div class="check">
+              <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 16.5 13 23.5 26 8.5"/></svg>
+            </div>
+            <h2>欢迎回来</h2>
+            <p>今天的光，已经为你留好了。</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    </div>
+  </div>
+
+<script>
+  (() => {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* image fade-in with fallback */
+    const img = document.getElementById('heroImg');
+    const markLoaded = () => img.classList.add('is-loaded');
+    img.complete && img.naturalWidth ? markLoaded() : img.addEventListener('load', markLoaded);
+
+    /* scale the 844px design to fit shorter desktop viewports */
+    const stage = document.querySelector('.stage');
+    function fitDevice() {
+      const s = Math.min(1, (window.innerHeight - 64) / 844);
+      stage.style.setProperty('--fit', s.toFixed(4));
+    }
+    window.addEventListener('resize', fitDevice);
+    fitDevice();
+
+    /* subtle pointer parallax (desktop only) */
+    if (!reduce && window.matchMedia('(pointer: fine)').matches) {
+      const stage = document.querySelector('.stage');
+      const layer = document.getElementById('bgImg');
+      let raf = null;
+      stage.addEventListener('pointermove', (e) => {
+        if (raf) return;
+        raf = requestAnimationFrame(() => {
+          const x = (e.clientX / window.innerWidth - .5) * -18;
+          const y = (e.clientY / window.innerHeight - .5) * -14;
+          layer.style.setProperty('--tx', x.toFixed(1) + 'px');
+          layer.style.setProperty('--ty', y.toFixed(1) + 'px');
+          raf = null;
+        });
+      });
+    }
+
+    /* toast */
+    const toastEl = document.getElementById('toast');
+    let toastTimer;
+    function toast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
+    }
+
+    /* password visibility */
+    const pass = document.getElementById('password');
+    const eye = document.getElementById('eye');
+    eye.addEventListener('click', () => {
+      const hidden = pass.type === 'password';
+      pass.type = hidden ? 'text' : 'password';
+      eye.classList.toggle('is-on', hidden);
+      eye.setAttribute('aria-label', hidden ? '隐藏密码' : '显示密码');
+    });
+
+    /* clear error state */
+    const account = document.getElementById('account');
+    const fieldAccount = document.getElementById('fieldAccount');
+    const fieldPassword = document.getElementById('fieldPassword');
+    [[account, fieldAccount], [pass, fieldPassword]].forEach(([input, field]) => {
+      input.addEventListener('input', () => field.classList.remove('error'));
+    });
+
+    /* submit */
+    const form = document.getElementById('loginForm');
+    const btn = document.getElementById('submitBtn');
+    const veil = document.getElementById('veil');
+    let veilTimer;
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (btn.classList.contains('loading')) return;
+
+      const accountOK = account.value.trim().length > 0;
+      const passOK = pass.value.trim().length > 0;
+
+      if (!accountOK || !passOK) {
+        fieldAccount.classList.toggle('error', !accountOK);
+        fieldPassword.classList.toggle('error', !passOK);
+        toast('请填写手机号或邮箱与密码');
+        (accountOK ? pass : account).focus();
+        return;
+      }
+
+      btn.classList.add('loading');
+      btn.disabled = true;
+
+      setTimeout(() => {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        veil.classList.add('open');
+        veil.setAttribute('aria-hidden', 'false');
+        toastEl.classList.remove('show');
+        clearTimeout(veilTimer);
+        veilTimer = setTimeout(() => {
+          veil.classList.remove('open');
+          veil.setAttribute('aria-hidden', 'true');
+        }, 3400);
+      }, 1000);
+    });
+
+    /* placeholder actions */
+    document.getElementById('forgot').addEventListener('click', (e) => {
+      e.preventDefault();
+      toast('重置链接已发送至你的手机');
+    });
+    document.getElementById('signup').addEventListener('click', (e) => {
+      e.preventDefault();
+      toast('正在前往创建账号');
+    });
+    document.querySelectorAll('.social').forEach((el) => {
+      el.addEventListener('click', () => toast('正在唤起' + el.dataset.name + '授权'));
+    });
+  })();
+</script>
+</body>
+</html>
